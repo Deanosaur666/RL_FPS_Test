@@ -176,10 +176,6 @@ int main () {
 	mapmodel = LoadModel("map2.gltf");
 	Vector3 mappos = { 0.0f, 0.0f, 0.0f };
 
-	//float mapscale = 1.0f / 16.0f;
-	float mapscale = 1.0f / 2.0f;
-	mapmodel.transform = MatrixScale(mapscale, mapscale, mapscale);
-
 	// billboards
 	int mod = addSprite("Mod.png", 2.0f / 700.0f);
 	int peach = addSprite("Peach.png", 2.0f / 700.0f);
