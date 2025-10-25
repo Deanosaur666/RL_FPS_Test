@@ -1,12 +1,3 @@
-/*
-Raylib example file.
-This is an example main file for a simple raylib project.
-Use this as a starting point or replace it with your code.
-
-by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
-
-*/
-
 #include "raylib.h"
 #include "raymath.h"
 
@@ -49,43 +40,43 @@ RayCollision RayToMap(Ray ray, Model map) {
 	return collision;
 }
 
-// billboards
-int bbend = 0;
-int bbmax = 4;
-Texture2D* bbtex;
-Rectangle* bbrect;
-Vector2* bbsize;
-Vector2* bborigin;
+// sprites
+int spriteend = 0;
+int spritemax = 4;
+Texture2D* spritetex;
+Rectangle* spriterect;
+Vector2* spritesize;
+Vector2* spriteorigin;
 
 Vector3 up = { 0.0f, 1.0f, 0.0f };
 Vector3 down = { 0.0f, -1.0f, 0.0f };
 
-void reallocBBs(int bbcount) {
-	bbtex = (Texture2D *)realloc(bbtex, sizeof(Texture2D) * bbcount);
-	bbrect = (Rectangle *)realloc(bbrect, sizeof(Rectangle) * bbcount);
-	bbsize = (Vector2 *)realloc(bbrect, sizeof(Vector2) * bbcount);
-	bborigin = (Vector2 *)realloc(bbrect, sizeof(Vector2) * bbcount);
+void reallocSprites(int bbcount) {
+	spritetex = (Texture2D *)realloc(spritetex, sizeof(Texture2D) * bbcount);
+	spriterect = (Rectangle *)realloc(spriterect, sizeof(Rectangle) * bbcount);
+	spritesize = (Vector2 *)realloc(spriterect, sizeof(Vector2) * bbcount);
+	spriteorigin = (Vector2 *)realloc(spriterect, sizeof(Vector2) * bbcount);
 }
 
-void unloadBBs() {
-	for(int i = 0; i < bbmax; i ++) {
-		Texture2D tex = bbtex[i];
+void unloadSprites() {
+	for(int i = 0; i < spritemax; i ++) {
+		Texture2D tex = spritetex[i];
 		UnloadTexture(tex);
 	}
 
-	free(bbtex);
-	free(bbrect);
-	free(bbsize);
-	free(bborigin);
+	free(spritetex);
+	free(spriterect);
+	free(spritesize);
+	free(spriteorigin);
 }
 
-int addBB(const char* texfile, float scale) {
-	int bbindex = bbend;
-	bbend ++;
+int addSprite(const char* texfile, float scale) {
+	int bbindex = spriteend;
+	spriteend ++;
 
-	if(bbindex > bbmax) {
-		bbmax *= 2;
-		reallocBBs(bbmax);
+	if(bbindex > spritemax) {
+		spritemax *= 2;
+		reallocSprites(spritemax);
 	}
 
 	Texture2D tex = LoadTexture(texfile);
@@ -94,37 +85,37 @@ int addBB(const char* texfile, float scale) {
 	size = Vector2Scale(size, scale);
 	Vector2 origin = { size.x/2, 0.0f };
 
-	bbtex[bbindex] = tex;
-	bbrect[bbindex] = rect;
-	bbsize[bbindex] = size;
-	bborigin[bbindex] = origin;
+	spritetex[bbindex] = tex;
+	spriterect[bbindex] = rect;
+	spritesize[bbindex] = size;
+	spriteorigin[bbindex] = origin;
 
 	return bbindex;
 }
 
-// entities
-int entityend = 0;
-int entitymax = 4;
-int* entitybb;
-Vector3* entitypos;
+// bbs
+int bbend = 0;
+int bbmax = 4;
+int* bbsprite;
+Vector3* bbpos;
 
-void reallocEntities(int count) {
-	entitybb = (int *)realloc(entitybb, sizeof(int) * count);
-	entitypos = (Vector3 *)realloc(entitypos, sizeof(Vector3) * count);
+void reallocBBs(int count) {
+	bbsprite = (int *)realloc(bbsprite, sizeof(int) * count);
+	bbpos = (Vector3 *)realloc(bbpos, sizeof(Vector3) * count);
 }
 
-void freeEntities() {
-	free(entitybb);
-	free(entitypos);
+void freeBBs() {
+	free(bbsprite);
+	free(bbpos);
 }
 
-int addEntity(int bb, Vector3 pos) {
-	int eindex = entityend;
-	entityend ++;
+int addBB(int sprite, Vector3 pos) {
+	int bb = bbend;
+	bbend ++;
 
-	if(entityend > entitymax) {
-		entitymax *= 2;
-		reallocEntities(entitymax);
+	if(bbend > bbmax) {
+		bbmax *= 2;
+		reallocBBs(bbmax);
 	}
 
 	Vector3 raypos = Vector3Add(pos, Vector3Scale(up, 16.0f));
@@ -136,32 +127,32 @@ int addEntity(int bb, Vector3 pos) {
 		pos = collision.point;
 	}
 
-	entitybb[eindex] = bb;
-	entitypos[eindex] = pos;
+	bbsprite[bb] = sprite;
+	bbpos[bb] = pos;
 
-	return eindex;
+	return bb;
 }
 
-typedef struct EntityDistance {
-	int e;
+typedef struct BBDist {
+	int bb;
 	float distance;
-} EntityDistance;
+} BBDist;
 
-int compareEntity(const void* a, const void* b) {
-	EntityDistance ea = *(EntityDistance *)a;
-	EntityDistance eb = *(EntityDistance *)b;
+int compareBB(const void* a, const void* b) {
+	BBDist bba = *(BBDist *)a;
+	BBDist bbb = *(BBDist *)b;
 
-	return (eb.distance - ea.distance);
+	return (bbb.distance - bba.distance);
 }
 
 int main () {
-	bbtex = (Texture2D *)malloc(sizeof(Texture2D) * bbmax);
-	bbrect = (Rectangle *)malloc(sizeof(Rectangle) * bbmax);
-	bbsize = (Vector2 *)malloc(sizeof(Vector2) * bbmax);
-	bborigin = (Vector2 *)malloc(sizeof(Vector2) * bbmax);
+	spritetex = (Texture2D *)malloc(sizeof(Texture2D) * spritemax);
+	spriterect = (Rectangle *)malloc(sizeof(Rectangle) * spritemax);
+	spritesize = (Vector2 *)malloc(sizeof(Vector2) * spritemax);
+	spriteorigin = (Vector2 *)malloc(sizeof(Vector2) * spritemax);
 
-	entitybb = (int *)malloc(sizeof(int) * entitymax);
-	entitypos = (Vector3 *)malloc(sizeof(Vector3) * entitymax);
+	bbsprite = (int *)malloc(sizeof(int) * bbmax);
+	bbpos = (Vector3 *)malloc(sizeof(Vector3) * bbmax);
 
 	// Tell the window to use vsync and work on high DPI displays
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
@@ -188,14 +179,15 @@ int main () {
 	mapmodel.transform = MatrixScale(mapscale, mapscale, mapscale);
 
 	// billboards
-	int mod = addBB("Mod.png", 2.0f);
-	int peach = addBB("Peach.png", 2.0f);
-	int dog = addBB("Dog.png", 1.0f);
+	int mod = addSprite("Mod.png", 2.0f);
+	int peach = addSprite("Peach.png", 2.0f);
+	int dog = addSprite("Dog.png", 1.0f);
 
 	// entities
-	addEntity(mod, (Vector3){ 0.0f, 0.0f, 0.0f });
-	addEntity(peach, (Vector3){ 0.0f, 0.0f, 2.0f });
-	addEntity(dog, (Vector3){ 0.0f, 0.0f, -2.0f });
+	addBB(mod, (Vector3){ 0.0f, 0.0f, 0.0f });
+	addBB(peach, (Vector3){ 1.0f, 0.0f, 0.0f });
+	addBB(peach, (Vector3){ 0.0f, 0.0f, 2.0f });
+	addBB(dog, (Vector3){ 0.0f, 0.0f, -2.0f });
 
 	SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
 	DisableCursor();
@@ -203,13 +195,6 @@ int main () {
 	// game loop
 	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
 	{
-		/*
-		if (IsKeyDown(KEY_LEFT))
-			maprot -= 5;
-		if(IsKeyDown(KEY_RIGHT))
-			maprot += 5;
-		*/
-
 		if (IsKeyDown(KEY_R)) {
 			camera.position.y += 0.1f;
 			camera.target.y += 0.1f;
@@ -232,21 +217,21 @@ int main () {
 				// map
 				DrawModel(mapmodel, mappos, 1.0f, WHITE);
 
-				EntityDistance entities[entityend];
-				for(int e = 0; e < entityend; e ++) {
-					entities[e] = (EntityDistance){ e, Vector3Distance(camera.position, entitypos[e]) };
+				BBDist bbs[bbend];
+				for(int bb = 0; bb < bbend; bb ++) {
+					bbs[bb] = (BBDist){ bb, Vector3Distance(camera.position, bbpos[bb]) };
 				}
-				qsort(entities, entityend, sizeof(EntityDistance), compareEntity);
+				qsort(bbs, bbend, sizeof(BBDist), compareBB);
 
-				// entities
-				for(int i = 0; i < entityend; i ++) {
-					int e = entities[i].e;
-					int bb = entitybb[e];
-					Vector3 pos = entitypos[e];
-					Texture2D tex = bbtex[bb];
+				// bbs
+				for(int i = 0; i < bbend; i ++) {
+					int bb = bbs[i].bb;
+					int sprite = bbsprite[bb];
+					Vector3 pos = bbpos[bb];
+					Texture2D tex = spritetex[sprite];
 					
 					//DrawBillboard(camera, tex, pos, 1, WHITE);
-					DrawBillboardPro(camera, tex, bbrect[bb], pos, up, bbsize[bb], bborigin[bb],
+					DrawBillboardPro(camera, tex, spriterect[sprite], pos, up, spritesize[sprite], spriteorigin[sprite],
 						0.0f, WHITE);
 				}
 
@@ -260,8 +245,8 @@ int main () {
 
 	// cleanup
 	UnloadModel(mapmodel);
-	unloadBBs();
-	freeEntities();
+	unloadSprites();
+	freeBBs();
 
 	// destroy the window and cleanup the OpenGL context
 	CloseWindow();
