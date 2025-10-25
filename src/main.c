@@ -71,26 +71,26 @@ void unloadSprites() {
 }
 
 int addSprite(const char* texfile, float scale) {
-	int bbindex = spriteend;
+	int spriteindex = spriteend;
 	spriteend ++;
 
-	if(bbindex > spritemax) {
+	if(spriteindex > spritemax) {
 		spritemax *= 2;
 		reallocSprites(spritemax);
 	}
 
 	Texture2D tex = LoadTexture(texfile);
 	Rectangle rect = { 0.0f, 0.0f, (float)tex.width,  (float)tex.height};
-	Vector2 size = { rect.width/rect.height, 1.0f };
+	Vector2 size = { rect.width, rect.height };
 	size = Vector2Scale(size, scale);
 	Vector2 origin = { size.x/2, 0.0f };
 
-	spritetex[bbindex] = tex;
-	spriterect[bbindex] = rect;
-	spritesize[bbindex] = size;
-	spriteorigin[bbindex] = origin;
+	spritetex[spriteindex] = tex;
+	spriterect[spriteindex] = rect;
+	spritesize[spriteindex] = size;
+	spriteorigin[spriteindex] = origin;
 
-	return bbindex;
+	return spriteindex;
 }
 
 // bbs
@@ -142,7 +142,7 @@ int compareBB(const void* a, const void* b) {
 	BBDist bba = *(BBDist *)a;
 	BBDist bbb = *(BBDist *)b;
 
-	return (bbb.distance - bba.distance);
+	return (int)(bbb.distance*1000.0f - bba.distance*1000.0f);
 }
 
 int main () {
@@ -179,9 +179,9 @@ int main () {
 	mapmodel.transform = MatrixScale(mapscale, mapscale, mapscale);
 
 	// billboards
-	int mod = addSprite("Mod.png", 2.0f);
-	int peach = addSprite("Peach.png", 2.0f);
-	int dog = addSprite("Dog.png", 1.0f);
+	int mod = addSprite("Mod.png", 0.003f);
+	int peach = addSprite("Peach.png", 0.003f);
+	int dog = addSprite("Dog.png", 0.002f);
 
 	// entities
 	addBB(mod, (Vector3){ 0.0f, 0.0f, 0.0f });
