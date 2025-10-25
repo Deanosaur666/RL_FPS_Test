@@ -15,6 +15,39 @@ by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit h
 #include <stdio.h>
 #include <stdlib.h>
 
+#undef FLT_MAX
+#define FLT_MAX     340282346638528859811704183484516925440.0f     // Maximum value of a float, from bit pattern 01111111011111111111111111111111
+
+// map
+Model mapmodel;
+
+RayCollision RayToMap(Ray ray, Model map) {
+	RayCollision collision = { 0 };
+	collision.distance = FLT_MAX;
+	collision.hit = false;
+
+	// Check ray collision against bounding box first, before trying the full ray-mesh test
+	RayCollision boxHitInfo = GetRayCollisionBox(ray, GetMeshBoundingBox(map.meshes[0]));
+	if ((boxHitInfo.hit) && (boxHitInfo.distance < collision.distance))
+	{
+		// Check ray collision against model meshes
+		RayCollision meshHitInfo = { 0 };
+		for (int m = 0; m < map.meshCount; m++)
+		{
+			meshHitInfo = GetRayCollisionMesh(ray, map.meshes[m], map.transform);
+			if (meshHitInfo.hit)
+			{
+				// Save the closest hit mesh
+				if ((!collision.hit) || (collision.distance > meshHitInfo.distance))
+					collision = meshHitInfo;
+
+				break;  // Stop once one mesh collision is detected, the colliding mesh is m
+			}
+		}
+	}
+
+	return collision;
+}
 
 // billboards
 int bbend = 0;
@@ -25,6 +58,7 @@ Vector2* bbsize;
 Vector2* bborigin;
 
 Vector3 up = { 0.0f, 1.0f, 0.0f };
+Vector3 down = { 0.0f, -1.0f, 0.0f };
 
 void reallocBBs(int bbcount) {
 	bbtex = (Texture2D *)realloc(bbtex, sizeof(Texture2D) * bbcount);
@@ -93,6 +127,15 @@ int addEntity(int bb, Vector3 pos) {
 		reallocEntities(entitymax);
 	}
 
+	Vector3 raypos = Vector3Add(pos, Vector3Scale(up, 16.0f));
+
+	Ray ray = { raypos, down };
+	RayCollision collision = RayToMap(ray, mapmodel);
+
+	if(collision.hit) {
+		pos = collision.point;
+	}
+
 	entitybb[eindex] = bb;
 	entitypos[eindex] = pos;
 
@@ -138,12 +181,11 @@ int main () {
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
 	// Load gltf model
-    Model map1 = LoadModel("map1.gltf");
+    mapmodel = LoadModel("map1.gltf");
 	Vector3 mappos = { 0.0f, 0.0f, 0.0f };
 
 	float mapscale = 1.0f / 16.0f;
-	Vector3 mapscale3 = { mapscale, mapscale, mapscale };
-	float maprot = 0.0f;
+	mapmodel.transform = MatrixScale(mapscale, mapscale, mapscale);
 
 	// billboards
 	int mod = addBB("Mod.png", 2.0f);
@@ -188,7 +230,7 @@ int main () {
 
 			BeginMode3D(camera);
 				// map
-				DrawModelEx(map1, mappos, (Vector3){ 0.0f, 1.0f, 0.0f }, maprot, mapscale3, WHITE);
+				DrawModel(mapmodel, mappos, 1.0f, WHITE);
 
 				EntityDistance entities[entityend];
 				for(int e = 0; e < entityend; e ++) {
@@ -209,16 +251,15 @@ int main () {
 				}
 
 			EndMode3D();
-		char msg[32];
-		int msglen = sprintf(msg, "Map rotation: %.0f", maprot);
-		DrawText(msg, 10, 10, 20, WHITE);
+		
+			DrawFPS(10, 10);
 		
 		EndDrawing();
         //----------------------------------------------------------------------------------
 	}
 
 	// cleanup
-	UnloadModel(map1);
+	UnloadModel(mapmodel);
 	unloadBBs();
 	freeEntities();
 
