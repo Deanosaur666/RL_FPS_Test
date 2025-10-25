@@ -172,22 +172,24 @@ int main () {
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
 
 	// Load gltf model
-    mapmodel = LoadModel("map1.gltf");
+    //mapmodel = LoadModel("map1.gltf");
+	mapmodel = LoadModel("map2.gltf");
 	Vector3 mappos = { 0.0f, 0.0f, 0.0f };
 
-	float mapscale = 1.0f / 16.0f;
+	//float mapscale = 1.0f / 16.0f;
+	float mapscale = 1.0f / 2.0f;
 	mapmodel.transform = MatrixScale(mapscale, mapscale, mapscale);
 
 	// billboards
-	int mod = addSprite("Mod.png", 0.003f);
-	int peach = addSprite("Peach.png", 0.003f);
-	int dog = addSprite("Dog.png", 0.002f);
+	int mod = addSprite("Mod.png", 2.0f / 700.0f);
+	int peach = addSprite("Peach.png", 2.0f / 700.0f);
+	int dog = addSprite("Dog.png", 2.0f / 1400.0f);
 
 	// entities
-	addBB(mod, (Vector3){ 0.0f, 0.0f, 0.0f });
-	addBB(peach, (Vector3){ 1.0f, 0.0f, 0.0f });
-	addBB(peach, (Vector3){ 0.0f, 0.0f, 2.0f });
-	addBB(dog, (Vector3){ 0.0f, 0.0f, -2.0f });
+	addBB(mod, (Vector3){ 3.0f, 0.0f, 0.0f });
+	addBB(peach, (Vector3){ -3.0f, 0.0f, 0.0f });
+	addBB(peach, (Vector3){ 0.0f, 0.0f, 3.0f });
+	addBB(dog, (Vector3){ 0.0f, 0.0f, 0.0f });
 
 	SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
 	DisableCursor();
