@@ -1,1 +1,1 @@
-Entity depth sorting
+Place entites with rays, so they stand on ground level

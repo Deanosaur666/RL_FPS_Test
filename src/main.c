@@ -45,7 +45,7 @@ void unloadBBs() {
 	free(bborigin);
 }
 
-int addBB(const char* texfile) {
+int addBB(const char* texfile, float scale) {
 	int bbindex = bbend;
 	bbend ++;
 
@@ -57,7 +57,8 @@ int addBB(const char* texfile) {
 	Texture2D tex = LoadTexture(texfile);
 	Rectangle rect = { 0.0f, 0.0f, (float)tex.width,  (float)tex.height};
 	Vector2 size = { rect.width/rect.height, 1.0f };
-	Vector2 origin = { 0.0f, 0.0f };
+	size = Vector2Scale(size, scale);
+	Vector2 origin = { size.x/2, 0.0f };
 
 	bbtex[bbindex] = tex;
 	bbrect[bbindex] = rect;
@@ -98,6 +99,18 @@ int addEntity(int bb, Vector3 pos) {
 	return eindex;
 }
 
+typedef struct EntityDistance {
+	int e;
+	float distance;
+} EntityDistance;
+
+int compareEntity(const void* a, const void* b) {
+	EntityDistance ea = *(EntityDistance *)a;
+	EntityDistance eb = *(EntityDistance *)b;
+
+	return (eb.distance - ea.distance);
+}
+
 int main () {
 	bbtex = (Texture2D *)malloc(sizeof(Texture2D) * bbmax);
 	bbrect = (Rectangle *)malloc(sizeof(Rectangle) * bbmax);
@@ -111,7 +124,7 @@ int main () {
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
 	// Create the window and OpenGL context
-	InitWindow(1280, 800, "Hello Raylib");
+	InitWindow(1280, 800, "FPS Test");
 
 	// Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
 	SearchAndSetResourceDir("resources");
@@ -133,9 +146,9 @@ int main () {
 	float maprot = 0.0f;
 
 	// billboards
-	int mod = addBB("Mod.png");
-	int peach = addBB("Peach.png");
-	int dog = addBB("Dog.png");
+	int mod = addBB("Mod.png", 2.0f);
+	int peach = addBB("Peach.png", 2.0f);
+	int dog = addBB("Dog.png", 1.0f);
 
 	// entities
 	addEntity(mod, (Vector3){ 0.0f, 0.0f, 0.0f });
@@ -177,10 +190,17 @@ int main () {
 				// map
 				DrawModelEx(map1, mappos, (Vector3){ 0.0f, 1.0f, 0.0f }, maprot, mapscale3, WHITE);
 
+				EntityDistance entities[entityend];
+				for(int e = 0; e < entityend; e ++) {
+					entities[e] = (EntityDistance){ e, Vector3Distance(camera.position, entitypos[e]) };
+				}
+				qsort(entities, entityend, sizeof(EntityDistance), compareEntity);
+
 				// entities
 				for(int i = 0; i < entityend; i ++) {
-					int bb = entitybb[i];
-					Vector3 pos = entitypos[i];
+					int e = entities[i].e;
+					int bb = entitybb[e];
+					Vector3 pos = entitypos[e];
 					Texture2D tex = bbtex[bb];
 					
 					//DrawBillboard(camera, tex, pos, 1, WHITE);
