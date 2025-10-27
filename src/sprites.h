@@ -13,4 +13,10 @@ extern Vector2* spriteorigin;
 int addSprite(const char* texfile, float scale);
 void unloadSprites();
 
+void initSprites();
+
+extern int spr_Mod;
+extern int spr_Peach;
+extern int spr_Dog;
+
 #endif

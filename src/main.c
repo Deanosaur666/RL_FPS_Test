@@ -90,13 +90,6 @@ int compareBBDist(const void* a, const void* b) {
 }
 
 int main () {
-	spritetex = (Texture2D *)malloc(sizeof(Texture2D) * spritemax);
-	spriterect = (Rectangle *)malloc(sizeof(Rectangle) * spritemax);
-	spritesize = (Vector2 *)malloc(sizeof(Vector2) * spritemax);
-	spriteorigin = (Vector2 *)malloc(sizeof(Vector2) * spritemax);
-
-	bbsprite = (int *)malloc(sizeof(int) * bbmax);
-	bbpos = (Vector3 *)malloc(sizeof(Vector3) * bbmax);
 
 	// Tell the window to use vsync and work on high DPI displays
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
@@ -106,6 +99,8 @@ int main () {
 
 	// Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
 	SearchAndSetResourceDir("resources");
+
+	initSprites();
 
 	// Define the camera to look into our 3d world
     Camera camera = { 0 };
@@ -121,16 +116,15 @@ int main () {
 	//mapmodel = LoadModel("Bunny.glb");
 	Vector3 mappos = { 0.0f, 0.0f, 0.0f };
 
-	// billboards
-	int mod = addSprite("Mod.png", 2.0f / 700.0f);
-	int peach = addSprite("Peach.png", 2.0f / 700.0f);
-	int dog = addSprite("Dog.png", 2.0f / 1400.0f);
+	// bbs
+	bbsprite = (int *)malloc(sizeof(int) * bbmax);
+	bbpos = (Vector3 *)malloc(sizeof(Vector3) * bbmax);
 
-	// entities
-	addBB(mod, (Vector3){ 3.0f, 0.0f, 0.0f });
-	addBB(peach, (Vector3){ -3.0f, 0.0f, 0.0f });
-	addBB(peach, (Vector3){ 0.0f, 0.0f, 3.0f });
-	addBB(dog, (Vector3){ 0.0f, 0.0f, 0.0f });
+	// billboards
+	addBB(spr_Mod, (Vector3){ 3.0f, 0.0f, 0.0f });
+	addBB(spr_Peach, (Vector3){ -3.0f, 0.0f, 0.0f });
+	addBB(spr_Peach, (Vector3){ 0.0f, 0.0f, 3.0f });
+	addBB(spr_Dog, (Vector3){ 0.0f, 0.0f, 0.0f });
 
 	SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
 	DisableCursor();

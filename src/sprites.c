@@ -51,3 +51,18 @@ int addSprite(const char* texfile, float scale) {
 
 	return spriteindex;
 }
+
+int spr_Mod;
+int spr_Peach;
+int spr_Dog;
+
+void initSprites() {
+    spritetex = (Texture2D *)malloc(sizeof(Texture2D) * spritemax);
+	spriterect = (Rectangle *)malloc(sizeof(Rectangle) * spritemax);
+	spritesize = (Vector2 *)malloc(sizeof(Vector2) * spritemax);
+	spriteorigin = (Vector2 *)malloc(sizeof(Vector2) * spritemax);
+
+    spr_Mod = addSprite("Mod.png", 2.0f / 700.0f);
+	spr_Peach = addSprite("Peach.png", 2.0f / 700.0f);
+	spr_Dog = addSprite("Dog.png", 2.0f / 1400.0f);
+}
