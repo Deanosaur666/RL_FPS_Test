@@ -1,10 +1,6 @@
-#include "raylib.h"
-#include "raymath.h"
-
-#include "resource_dir.h"	// utility header for SearchAndSetResourceDir
-
-#include <stdio.h>
-#include <stdlib.h>
+#include "headers.h"
+#include "sprites.h"
+#include "vectors.h"
 
 #undef FLT_MAX
 #define FLT_MAX     340282346638528859811704183484516925440.0f     // Maximum value of a float, from bit pattern 01111111011111111111111111111111
@@ -40,59 +36,6 @@ RayCollision RayToMap(Ray ray, Model map) {
 	return collision;
 }
 
-// sprites
-int spriteend = 0;
-int spritemax = 4;
-Texture2D* spritetex;
-Rectangle* spriterect;
-Vector2* spritesize;
-Vector2* spriteorigin;
-
-Vector3 up = { 0.0f, 1.0f, 0.0f };
-Vector3 down = { 0.0f, -1.0f, 0.0f };
-
-void reallocSprites(int bbcount) {
-	spritetex = (Texture2D *)realloc(spritetex, sizeof(Texture2D) * bbcount);
-	spriterect = (Rectangle *)realloc(spriterect, sizeof(Rectangle) * bbcount);
-	spritesize = (Vector2 *)realloc(spriterect, sizeof(Vector2) * bbcount);
-	spriteorigin = (Vector2 *)realloc(spriterect, sizeof(Vector2) * bbcount);
-}
-
-void unloadSprites() {
-	for(int i = 0; i < spritemax; i ++) {
-		Texture2D tex = spritetex[i];
-		UnloadTexture(tex);
-	}
-
-	free(spritetex);
-	free(spriterect);
-	free(spritesize);
-	free(spriteorigin);
-}
-
-int addSprite(const char* texfile, float scale) {
-	int spriteindex = spriteend;
-	spriteend ++;
-
-	if(spriteindex > spritemax) {
-		spritemax *= 2;
-		reallocSprites(spritemax);
-	}
-
-	Texture2D tex = LoadTexture(texfile);
-	Rectangle rect = { 0.0f, 0.0f, (float)tex.width,  (float)tex.height};
-	Vector2 size = { rect.width, rect.height };
-	size = Vector2Scale(size, scale);
-	Vector2 origin = { size.x/2, 0.0f };
-
-	spritetex[spriteindex] = tex;
-	spriterect[spriteindex] = rect;
-	spritesize[spriteindex] = size;
-	spriteorigin[spriteindex] = origin;
-
-	return spriteindex;
-}
-
 // bbs
 int bbend = 0;
 int bbmax = 4;
@@ -117,7 +60,7 @@ int addBB(int sprite, Vector3 pos) {
 		bbmax *= 2;
 		reallocBBs(bbmax);
 	}
-
+	// placing on ground
 	Vector3 raypos = Vector3Add(pos, Vector3Scale(up, 16.0f));
 
 	Ray ray = { raypos, down };
@@ -127,6 +70,7 @@ int addBB(int sprite, Vector3 pos) {
 		pos = collision.point;
 	}
 
+	// adding sprite and pos to lists
 	bbsprite[bb] = sprite;
 	bbpos[bb] = pos;
 
@@ -138,7 +82,7 @@ typedef struct BBDist {
 	float distance;
 } BBDist;
 
-int compareBB(const void* a, const void* b) {
+int compareBBDist(const void* a, const void* b) {
 	BBDist bba = *(BBDist *)a;
 	BBDist bbb = *(BBDist *)b;
 
@@ -165,8 +109,8 @@ int main () {
 
 	// Define the camera to look into our 3d world
     Camera camera = { 0 };
-    camera.position = (Vector3){ 0.0f, 1.0f, 0.0f };    // Camera position
-    camera.target = (Vector3){ 0.0f, 1.0f, -1.0f };      // Camera looking at point
+    camera.position = (Vector3){ 0.0f, 1.8f, 0.0f };    // Camera position
+    camera.target = (Vector3){ 0.0f, 1.8f, -1.0f };      // Camera looking at point
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
@@ -174,6 +118,7 @@ int main () {
 	// Load gltf model
     //mapmodel = LoadModel("map1.gltf");
 	mapmodel = LoadModel("map2.gltf");
+	//mapmodel = LoadModel("Bunny.glb");
 	Vector3 mappos = { 0.0f, 0.0f, 0.0f };
 
 	// billboards
@@ -219,7 +164,7 @@ int main () {
 				for(int bb = 0; bb < bbend; bb ++) {
 					bbs[bb] = (BBDist){ bb, Vector3Distance(camera.position, bbpos[bb]) };
 				}
-				qsort(bbs, bbend, sizeof(BBDist), compareBB);
+				qsort(bbs, bbend, sizeof(BBDist), compareBBDist);
 
 				// bbs
 				for(int i = 0; i < bbend; i ++) {
