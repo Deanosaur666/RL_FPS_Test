@@ -8,5 +8,8 @@
 		"**/*.o": true,
 		"**/*.exe": true,
 	},
-	"makefile.configureOnOpen": false
+	"makefile.configureOnOpen": false,
+	"files.associations": {
+		"*.m": "c"
+	}
 }

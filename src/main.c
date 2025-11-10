@@ -1,6 +1,7 @@
 #include "headers.h"
 #include "sprites.h"
 #include "vectors.h"
+#include "actor.h"
 
 #undef FLT_MAX
 #define FLT_MAX     340282346638528859811704183484516925440.0f     // Maximum value of a float, from bit pattern 01111111011111111111111111111111
@@ -36,29 +37,26 @@ RayCollision RayToMap(Ray ray, Model map) {
 	return collision;
 }
 
-// bbs
-int bbend = 0;
-int bbmax = 4;
-int* bbsprite;
-Vector3* bbpos;
+// actors
+Actor* actors;
+int actorEnd = 0;
+int actorMax = 4;
 
-void reallocBBs(int count) {
-	bbsprite = (int *)realloc(bbsprite, sizeof(int) * count);
-	bbpos = (Vector3 *)realloc(bbpos, sizeof(Vector3) * count);
+void reallocActors(int count) {
+	actors = (Actor *)realloc(actors, sizeof(Actor) * count);
 }
 
-void freeBBs() {
-	free(bbsprite);
-	free(bbpos);
+void freeActors() {
+	free(actors);
 }
 
-int addBB(int sprite, Vector3 pos) {
-	int bb = bbend;
-	bbend ++;
+void addActor(int sname, Vector3 pos, bool spinner) {
+	int actorIndex = actorEnd;
+	actorEnd ++;
 
-	if(bbend > bbmax) {
-		bbmax *= 2;
-		reallocBBs(bbmax);
+	if(actorEnd > actorMax) {
+		actorMax *= 2;
+		reallocActors(actorMax);
 	}
 	// placing on ground
 	Vector3 raypos = Vector3Add(pos, Vector3Scale(up, 16.0f));
@@ -71,22 +69,22 @@ int addBB(int sprite, Vector3 pos) {
 	}
 
 	// adding sprite and pos to lists
-	bbsprite[bb] = sprite;
-	bbpos[bb] = pos;
+	Actor actor = { sname, pos, 0, spinner };
 
-	return bb;
+	actors[actorIndex] = actor;
+
 }
 
-typedef struct BBDist {
-	int bb;
+typedef struct ActorDist {
+	int actorIndex;
 	float distance;
-} BBDist;
+} ActorDist;
 
-int compareBBDist(const void* a, const void* b) {
-	BBDist bba = *(BBDist *)a;
-	BBDist bbb = *(BBDist *)b;
+int compareActorDist(const void* a, const void* b) {
+	ActorDist actorA = *(ActorDist *)a;
+	ActorDist actorB = *(ActorDist *)b;
 
-	return (int)(bbb.distance*1000.0f - bba.distance*1000.0f);
+	return (int)(actorB.distance*1000.0f - actorA.distance*1000.0f);
 }
 
 int main () {
@@ -116,15 +114,16 @@ int main () {
 	//mapmodel = LoadModel("Bunny.glb");
 	Vector3 mappos = { 0.0f, 0.0f, 0.0f };
 
-	// bbs
-	bbsprite = (int *)malloc(sizeof(int) * bbmax);
-	bbpos = (Vector3 *)malloc(sizeof(Vector3) * bbmax);
+	// actors
+	actors = (Actor *)malloc(sizeof(Actor) * actorMax);
+	
+	addActor(spr_Mod, (Vector3){ 3.0f, 0.0f, 0.0f }, false);
+	addActor(spr_Peach, (Vector3){ -3.0f, 0.0f, 0.0f }, false);
+	addActor(spr_Peach, (Vector3){ 0.0f, 0.0f, 3.0f }, false);
+	addActor(spr_Dog, (Vector3){ 0.0f, 0.0f, 0.0f }, false);
 
-	// billboards
-	addBB(spr_Mod, (Vector3){ 3.0f, 0.0f, 0.0f });
-	addBB(spr_Peach, (Vector3){ -3.0f, 0.0f, 0.0f });
-	addBB(spr_Peach, (Vector3){ 0.0f, 0.0f, 3.0f });
-	addBB(spr_Dog, (Vector3){ 0.0f, 0.0f, 0.0f });
+	addActor(spn_Rat, (Vector3){ -3.0f, 0.0f, -5.0f }, true);
+	addActor(spn_Rat, (Vector3){ 3.0f, 0.0f, -5.0f }, true);
 
 	SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
 	DisableCursor();
@@ -154,22 +153,17 @@ int main () {
 				// map
 				DrawModel(mapmodel, mappos, 1.0f, WHITE);
 
-				BBDist bbs[bbend];
-				for(int bb = 0; bb < bbend; bb ++) {
-					bbs[bb] = (BBDist){ bb, Vector3Distance(camera.position, bbpos[bb]) };
+				ActorDist actorDists[actorEnd];
+				for(int a = 0; a < actorEnd; a ++) {
+					actorDists[a] = (ActorDist){ a, Vector3Distance(camera.position, actors[a].position) };
 				}
-				qsort(bbs, bbend, sizeof(BBDist), compareBBDist);
+				qsort(actorDists, actorEnd, sizeof(ActorDist), compareActorDist);
 
-				// bbs
-				for(int i = 0; i < bbend; i ++) {
-					int bb = bbs[i].bb;
-					int sprite = bbsprite[bb];
-					Vector3 pos = bbpos[bb];
-					Texture2D tex = spritetex[sprite];
-					
-					//DrawBillboard(camera, tex, pos, 1, WHITE);
-					DrawBillboardPro(camera, tex, spriterect[sprite], pos, up, spritesize[sprite], spriteorigin[sprite],
-						0.0f, WHITE);
+				// actors
+				for(int i = 0; i < actorEnd; i ++) {
+					int actorIndex = actorDists[i].actorIndex;
+					Actor actor = actors[actorIndex];
+					drawActor(camera, actor);
 				}
 
 			EndMode3D();
@@ -183,7 +177,7 @@ int main () {
 	// cleanup
 	UnloadModel(mapmodel);
 	unloadSprites();
-	freeBBs();
+	freeActors();
 
 	// destroy the window and cleanup the OpenGL context
 	CloseWindow();
