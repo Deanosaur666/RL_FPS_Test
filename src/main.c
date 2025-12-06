@@ -87,7 +87,22 @@ int compareActorDist(const void* a, const void* b) {
 	return (int)(actorB.distance*1000.0f - actorA.distance*1000.0f);
 }
 
+typedef Vector3 Position;
+
 int main () {
+
+	ecs_world_t * world = ecs_init();
+
+	ECS_COMPONENT(world, Vector3);
+	ECS_COMPONENT(world, Position);
+
+	ecs_entity_t e = ecs_new(world);
+	ecs_set(world, e, Vector3, {0, 0, 0});
+	//ecs_set(world, e, Position, {0, 0, 0});
+
+	printf("%b\n", ecs_has(world, e, Vector3));
+	printf("%b\n", ecs_has(world, e, Position));
+
 
 	// Tell the window to use vsync and work on high DPI displays
 	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
@@ -178,6 +193,8 @@ int main () {
 	UnloadModel(mapmodel);
 	unloadSprites();
 	freeActors();
+
+	ecs_fini(world);
 
 	// destroy the window and cleanup the OpenGL context
 	CloseWindow();
